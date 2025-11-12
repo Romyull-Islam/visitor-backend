@@ -27,7 +27,11 @@ const Visit = mongoose.model('Visit', visitSchema);
 // API Endpoint
 app.post('/api/visit', async (req, res) => {
   try {
-    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    if (ip) {
+      ip = ip.split(',')[0].trim();  // Take only the first IP and trim spaces
+    }
+
     const geoResponse = await axios.get(`https://ipinfo.io/${ip}/json?token=${process.env.IPINFO_TOKEN}`);
     const { city, country, loc } = geoResponse.data;
     const [lat, lon] = loc ? loc.split(',').map(Number) : [0, 0];
@@ -50,4 +54,4 @@ app.post('/api/visit', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
